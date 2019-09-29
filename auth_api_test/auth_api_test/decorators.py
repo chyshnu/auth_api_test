@@ -1,6 +1,5 @@
 import functools
-import time
-from auth_api_test.exception.error import *
+import time, json
 
 from auth_api_test.exception.error import *
 
@@ -10,6 +9,8 @@ def check_token(function):
 
     def _inner(request, *args, **kwargs):
         token = request.POST.get('token', None)
+        # req_dict = json.loads(request.body)
+        # token = req_dict.get('token', None)
         if not token:
             raise WRONG_TOKEN()
         return function(request, *args, **kwargs)
@@ -31,13 +32,13 @@ def timeit(function):
 
 
 def check_params(param_validate_dict):
-    """参数验证器"""
+    """请求参数验证器"""
 
     def decorator(function):
         @functools.wraps(function)
         def _inner(request, *args, **kwargs):
-
             params_dict = dict(getattr(request, request.method, None))
+            # params_dict = json.loads(request.body)  # type(params_dict)  -->  <class 'dict'>
             # print(params_dict)
             for k, v in param_validate_dict.items():
                 verify_field_value = params_dict.get(k, None)
@@ -51,11 +52,12 @@ def check_params(param_validate_dict):
                     })
 
                 # 如果请求参数验证未通过，抛出参数验证未通过异常
-                if not v.check_field(verify_field_value[0]):    # 取第0个元素 {'username': ['chyshnu1']}
+                res, hint = v.check_field(verify_field_value[0])
+                if not res:
                     raise PARAMETER_VALIDATE_FAILED({
                         'field': k,
                         'field_desc': v.verify_field_desc,
-                        'hint': v.pattern_desc
+                        'hint': hint
                     })
 
             return function(request, *args, **kwargs)

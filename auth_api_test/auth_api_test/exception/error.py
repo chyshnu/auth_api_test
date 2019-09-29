@@ -19,3 +19,13 @@ class PARAMETER_VALIDATE_FAILED(OK200):
 class ILLEGAL_PARAMETER(OK200):
     code = 5002
     message = "非法的请求参数"
+
+
+class VERIF_CODE_FREQUENCY_ERROR(OK200):
+    code = 5003
+    message = "1分钟只能获取1次验证码"
+
+
+class VERIF_CODE_WRONG(OK200):
+    code = 5004
+    message = "验证码错误"

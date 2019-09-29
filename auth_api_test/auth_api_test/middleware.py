@@ -36,17 +36,19 @@ class ExceptionMiddleware:
     def process_exception(cls, request, exception):
         # print('ExceptionMiddleware process_exception')
         if not issubclass(exception.__class__, BaseReturn):
-            return JsonResponse(data={
-                'code': 500,
-                'msg': '服务器内部错误'
-            }, status=500)
-
-        ret_json = {
-            'code': getattr(exception, 'code', ''),
-            'msg': getattr(exception, 'message', ''),
-            'data': getattr(exception, 'hint_data', '')
-        }
-        return JsonResponse(ret_json, status=getattr(exception, 'status_code'))
+            if not settings.DEBUG:
+                return JsonResponse(data={
+                    'code': 500,
+                    'msg': '服务器内部错误'
+                }, status=500)
+            pass
+        else:
+            ret_json = {
+                'code': getattr(exception, 'code', ''),
+                'msg': getattr(exception, 'message', ''),
+                'data': getattr(exception, 'hint_data', '')
+            }
+            return JsonResponse(ret_json, status=getattr(exception, 'status_code'))
 
 
 
