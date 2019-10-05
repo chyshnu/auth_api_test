@@ -1,31 +1,17 @@
-from .base import *
+# 错误代码定义
+OK = 0, "请求成功"
+Wrong_Token = 3001, "不合法的调用凭证"
+Parameter_Validate_Failed = 3002, "不符合验证规则"
+Parameter_Missing = 3003, "缺失参数"
+Wrong_Url = 3004, "URL验证失败"
+User_Forbidden = 4001, "用户已禁用"
+Verify_Code_Frequency_Error = 5003, "验证码频率限制"
+Verify_Code_Wrong = 5004, "验证码错误"
+Verify_Code_Resend = 5005, "请重新获取验证码"
+Crypt_ComputeSignature_Error = 5006, "计算签名时发生错误"
+Crypt_EncryptAES_Error = 5007, "消息加密时发生错误"
+Crypt_DecryptAES_Error = 5008, "消息解密时发生错误"
+Crypt_IllegalBuffer = 5009, "缓冲区错误"
+Crypt_ValidateCorpid_Error = 5010, "消息主体验证失败"
+Crypt_ParseJson_Error = 5011, "提取数据错误"
 
-
-class ERROR_FAULT(ServiceUnavailable503):
-    message = "服务器内部错误"
-    code = 10001
-
-
-class WRONG_TOKEN(OK200):
-    code = 5000
-    message = "非法token"
-
-
-class PARAMETER_VALIDATE_FAILED(OK200):
-    code = 5001
-    message = "参数验证未通过"
-
-
-class ILLEGAL_PARAMETER(OK200):
-    code = 5002
-    message = "非法的请求参数"
-
-
-class VERIF_CODE_FREQUENCY_ERROR(OK200):
-    code = 5003
-    message = "1分钟只能获取1次验证码"
-
-
-class VERIF_CODE_WRONG(OK200):
-    code = 5004
-    message = "验证码错误"

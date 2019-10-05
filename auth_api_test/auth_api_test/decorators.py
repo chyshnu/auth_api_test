@@ -1,18 +1,49 @@
 import functools
-import time, json
+import time
 
+from django.core.cache import cache
+from auth_api_test.exception.base import ApiException
 from auth_api_test.exception.error import *
+from auth_api_test.api.crypt import BizMsgCrypt
+from django.conf import settings
 
 
 def check_token(function):
     """检查用户token是否正常"""
 
     def _inner(request, *args, **kwargs):
-        token = request.POST.get('token', None)
-        # req_dict = json.loads(request.body)
-        # token = req_dict.get('token', None)
+
+        # 获取Request请求Headers中的token字段
+        token = request.headers.get('Access-Token')
         if not token:
-            raise WRONG_TOKEN()
+            # 没有token参数，抛出异常
+            raise ApiException(Parameter_Missing, suffix='token')
+        user = cache.get(token)
+        if user:
+            pass
+        else:
+            # 缓存中找不到token，抛出异常
+            raise ApiException(Wrong_Token)
+
+        return function(request, *args, **kwargs)
+
+    return _inner
+
+
+def verify_url(function):
+    """验证url"""
+    def _inner(request, *args, **kwargs):
+
+        # 获取Request请求Headers中的token字段
+        token = request.headers.get('Access-Token')
+        ts = request.p('timestamp')
+        nonce = request.p('nonce')
+        encrypt = request.p('encrypt')
+        signature = request.p('signature')
+        if not BizMsgCrypt.verify_url(signature, token, ts, nonce, encrypt, settings.SALT):
+            # 校验失败抛出异常
+            raise ApiException(Wrong_Url)
+
         return function(request, *args, **kwargs)
 
     return _inner
@@ -37,28 +68,18 @@ def check_params(param_validate_dict):
     def decorator(function):
         @functools.wraps(function)
         def _inner(request, *args, **kwargs):
-            params_dict = dict(getattr(request, request.method, None))
             # params_dict = json.loads(request.body)  # type(params_dict)  -->  <class 'dict'>
-            # print(params_dict)
             for k, v in param_validate_dict.items():
-                verify_field_value = params_dict.get(k, None)
+                verify_field_value = request.p(k)
 
                 # 如果应当验证的参数在请求参数中不存在，抛出非法请求参数异常
                 if not verify_field_value:
-                    raise ILLEGAL_PARAMETER({
-                        'field': k,
-                        'field_desc': v.verify_field_desc,
-                        'hint': '请求参数不存在'
-                    })
+                    raise ApiException(Parameter_Missing, suffix=k)
 
-                # 如果请求参数验证未通过，抛出参数验证未通过异常
-                res, hint = v.check_field(verify_field_value[0])
-                if not res:
-                    raise PARAMETER_VALIDATE_FAILED({
-                        'field': k,
-                        'field_desc': v.verify_field_desc,
-                        'hint': hint
-                    })
+                v.set_request(request)  # 将请求传入验证对象
+
+                # 如果请求参数验证未通过，直接抛出异常
+                v.check_field(verify_field_value)
 
             return function(request, *args, **kwargs)
 

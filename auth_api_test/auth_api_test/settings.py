@@ -79,6 +79,13 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'cache_table',
+    }
+}
+
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
@@ -117,5 +124,5 @@ USE_TZ = False
 STATIC_URL = '/static/'
 
 
-SALT = '#Helloworld!#'
-TOKEN_EXPIRE = 7200
+SALT = 'uF51bAMVWriNvO1FMegHrQZNrtvRxbwf'
+TOKEN_EXPIRES = 7200

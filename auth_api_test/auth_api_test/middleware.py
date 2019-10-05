@@ -1,7 +1,7 @@
-from django.utils.deprecation import MiddlewareMixin
 from django.http import JsonResponse
 from django.conf import settings
-from auth_api_test.exception.base import BaseReturn
+from auth_api_test.exception.base import ApiException
+from auth_api_test.api.http import MyRequest
 
 
 class ExceptionMiddleware:
@@ -14,12 +14,16 @@ class ExceptionMiddleware:
     def __call__(self, request):
         # Code to be executed for each request before
         # the view (and later middleware) are called.
-        # print('ExceptionMiddleware __call__ request')
+
+        # 为了调用子类方法，修改class类型为子类对象
+        request.__class__ = MyRequest
+        # print(type(request))
 
         response = self.get_response(request)
 
         # Code to be executed for each request/response after
         # the view is called.
+
         # print('ExceptionMiddleware __call__ response')
         # if 200 == response.status_code:
         #     return response
@@ -30,12 +34,13 @@ class ExceptionMiddleware:
         #         'code': response.status_code,
         #         'msg': 'Failed...' + response.reason_phrase,
         #     }, status=response.status_code)
+
         return response
 
     @classmethod
     def process_exception(cls, request, exception):
         # print('ExceptionMiddleware process_exception')
-        if not issubclass(exception.__class__, BaseReturn):
+        if not issubclass(exception.__class__, ApiException):
             if not settings.DEBUG:
                 return JsonResponse(data={
                     'code': 500,
@@ -46,7 +51,6 @@ class ExceptionMiddleware:
             ret_json = {
                 'code': getattr(exception, 'code', ''),
                 'msg': getattr(exception, 'message', ''),
-                'data': getattr(exception, 'hint_data', '')
             }
             return JsonResponse(ret_json, status=getattr(exception, 'status_code'))
 
