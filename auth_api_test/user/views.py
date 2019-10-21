@@ -13,11 +13,11 @@ from .models import User, UserInfo
 @check_token
 @verify_url
 def test_json(request):
-    encrpyt_text = request.p('encrypt')
+    encrypt_text = request.p('encrypt')
     token = request.headers.get('Access-Token')
 
     bmc = BizMsgCrypt(token, settings.SECRET_KEY, settings.SALT)
-    plain_json = bmc.decryptMsg(encrpyt_text)
+    plain_json = bmc.decryptMsg(encrypt_text)
     print(plain_json)
     print(plain_json['ToUserName'])
 
@@ -101,4 +101,4 @@ def send_vcode(request):
         v_code = make_vcode()
         cache.set(mobile, v_code, 60)
 
-    return json_response('验证码发送成功', {'vcode': v_code} if settings.DEBUG else [])
+    return json_response('发送成功', {'vcode': v_code} if settings.DEBUG else [])

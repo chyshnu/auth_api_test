@@ -100,7 +100,9 @@ class VcodeValidator(BaseValidator):
 
         if not cached_vcode:
             raise ApiException(Verify_Code_Resend)
-        if not (vcode == cached_vcode):
+        if vcode == cached_vcode:
+            cache.delete(mobile)
+        else:
             raise ApiException(Verify_Code_Wrong)
 
 
